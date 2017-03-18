@@ -1,0 +1,28 @@
+#                       $Outline[line number][0] = # spaces to
+#                                         the left of any text = $s
+#                       $Outline[line number][1] = the literal enumeration 
+#                                       (outline number or letter) 
+#                                     - enumeration ends with a "." 
+#                       $Outline[line number][2] = the sequence #
+#                                       of the enumerator = $n
+#                       $Outline[line number][3] = modulus of the number of 
+#                                              spaces = enumerator type = $smod
+#                       $Outline[line number][4] = the text after enumeration
+#                       $Outline[line number][5] = Original unedited outline line
+#                       $Outline[line number][6] = enumerator type modulus = $emod
+#                                      Romans = 0, Caps = 1, Nums = 2, Lower =3) 
+#                        Note: $Outline[$i][3] = $Outline[$i][6] or a flag is set
+#                       $Outline[line number][7] = # Only used in lists, not images
+#		                         of siblings - max $n for any 
+#                                        cohort (offspring of the same parent)
+#                       $Outline[line number][8] = # of descendants, i.e.
+#                                        $f = The number of lines before
+#                                        the next sibling or elder or end of file 
+#                                        (family size) (Note - this requires 
+#                                        reading and processing through 
+#                                        the entire outline once before solving
+#                       $Outline[line number][9] = Flag - = 0 no mistake 
+#                                          1 = mismatch with modulus 
+#                                          2 = mismatch with numeration
+#
+#

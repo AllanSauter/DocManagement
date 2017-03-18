@@ -1,0 +1,123 @@
+$OutlineFile = $ARGV[0];
+$WriteDir = $ARGV[1];
+$InDir1 = $ARGV[2];
+	$InDir2 = $ARGV[3];
+
+#ReadOut Subroutine - reads the outline file ($OutlineFile) 
+#                      and transfers the information to @pages[$line #][]:
+#                      [0]= folder name  - e.g. Vaisala
+#                      [1]= folder location with respect to the root (.)
+#                                     e.g.    /INSTALL/PREVIE/Vaisala 
+#                      [2] = number of spaces before enumerator 
+#                      [3] = Enumerator.  e.g. A.   (note period is included 
+#                      [4] = picture file name (i.e. TABaler.png)
+#		       [5] = original unedited Outline line
+#                      [6] = error bit code. 
+#                           0 = no errors to report
+#                           1 bit set = no index.htm found
+#                           2 bit set = no image file found
+#                           4 bit set = index.htm & @pages image don't match
+#                           8 bit set = archived file
+#                          16 bit set = ImageFile not specified in index.htm 
+#                          32 bit set = index.htm image file name
+#                             inconsistency (differing names in <img src line
+#                          64 bit set = index.htm map file name(s) not right 
+#                         128 bit set = index.htm map file name(s) not right m
+Matrix of input and output states:
+/Perl/DocManager/Documentation/directMatrix.xlsx (somewhat trivial) -
+ basically comes down to 2 flags: 
+       -o overwrites WriteDir (querying if already exists) using outline.txt
+            as a template; no directories other than those explicitly 
+            listed in outline.txt will be built, minimum amount of file
+            transfers also - just index.htm, image.png (as referenced by
+            index.htm and : delimiter indicator in current $pages[$i][0]), 
+            and list filed.
+       -u causes InDir2 (or InDir1, if InDir2 not specified) files that 
+            match those already in WriteDir to overwrite the writedir files
+One other task I need to do is just have an InDir of files that need to be
+replaced wherever they occur in WriteDir.  To get both an index.htm and
+imagefile, one would place them both in the directory name that matches the
+directory where they go.  To get just the image file, I think just the file in
+a common InDir is adequate.
+Here's the cases and how the software acts for each case:
+A) direct.pl Out.txt WDir InDir 
+    This is like the old wip - all files in InDir overwrite similar named 
+     files in WDir.  If there's a directory path in InDir, files in that 
+     directory are written to similar directory paths in Wdir. Out.txt is 
+     not used.
+B) direct.pl Out.txt WDir InDir -o 
+    Erases WDir (-o option) and then uses Out.txt to build WDir filling it
+     with just directories, index.htm, image files, and list files from InDIr
+C) direct.pl Out.txt WDir InDir -u
+    Uses Out.txt to build WDir filling it with all files in like-named
+     directory paths from InDir 
+D) direct.pl Out.txt WDir InDir -o -u 
+    Erases WDir (-o option) and then uses Out.txt to build WDir filling it
+     with all files in like-named directory paths from InDir
+E) direct.pl Out.txt WDir InDir1 InDir2 
+    Uses Out.txt to pull files from like-minded directory paths in InDir1.
+     If the file exists both in InDir1 and WDir, whichever is newest is
+     put/kept in WDir.  If the older one was already in WDir, it is stored
+     in an ArchiveDate subdirectory. Then we go thru Out.txt again and pull 
+     files from InDir2, archiving if an older version was already in WDir.
+F) direct.pl Out.txt WDir InDir1 InDir2 -o 
+    Erases WDir, then uses Out.txt to pull index.htm, image-files, and
+     list-files from like-minded directory paths in InDir1.  Then we go 
+     thru Out.txt again and pull index.htm, image-files and list-files from 
+     InDir2, archiving if an older version was already in WDir from the InDir1
+     loop.
+G) direct.pl Out.txt WDir InDir1 InDir2 -u 
+    Uses Out.txt to pull all files from like-minded directory paths in InDir1.
+     If the file exists both in InDir1 and WDir, whichever is newest is 
+     put/kept in WDir.  If the older one was already in WDir, it is stored in 
+     an ArchiveDate subdirectory. Then we go thru Out.txt again to pull 
+     all files from like-minded InDir2, overwriting, if different the 
+     same-named ones in WDir, regardless which is newer, but archiving the
+     ones originally (or added in the InDir1 loop) in WDir.
+H) direct.pl Out.txt WDir InDir1 InDir2 -o -u 
+    Erases WDir, then uses Out.txt to pull index.htm, image-files, and
+     list-files from like-minded directory paths in InDir1. Then we go thru 
+     Out.txt again and pull index.htm, image- files and list-files from InDir2,
+     overwriting and archiving if any version that was already in WDir from 
+     the previous InDir1 loop.
+    
+
+One way to retain an entire directory structure and add more is to:
+1) run makeout.pl with the full directory as the input, 
+2) run direct with an outline that has new stuff, and write it to an already
+working (fully linkable) directory 
+
+Copying has 4 Possibilities:
+
+1) copy fails because the write folder fails to exist
+ a) the mkdir function should precede or be inclusive in copying
+2) copy fails because the read file fails to exist
+ a) write default file and report absence
+3) copy succeeds and places file in existing directory that previously didn't
+    have that file
+4) copy finds a copy of the file already there 
+ a) File::Compare - if files are same, do not copy
+ b) File::Compare - if files are different, make a copy to ./ArchivePresentDate
+
+direct subroutine line numbers:
+::main 1- 192
+  $InDir1, $InDir2, $depth, @FFSplit, @Pages, @Matchd, @Match, @Fullfiles,
+  $LookFor, $OutlineFile, $WriteDir, $Oflag, $Uflag, $Aflag, $answer, $time,
+  $Outstring, 
+ ReadOut 195-345
+  $Outline, $array_count, $line, $heading, $page, $picture, $temppage,
+  $number_of_spaces, $i, $n, $ln
+ BuildDir - 346-360
+ FillDir - 362-624
+   @MatchesRank, @M_plus_R, @genx, @geny, @all, $i, $j, $k, $m, $MatchNo, $count,
+   $got_it, $mtimeWrite, @filenames
+ WipIt - 625-736
+ Wanted - 737-746
+ Wanted2 - 747-754
+ Wanted3 - 755-767
+ CreateArchive 769-785
+ TimeStamp 786-806
+ InboxFileCopy 809-829 (Obsolete?)
+ FindIndex_html 831-862
+ CreateIndex 865-910
+ CreateWebOutline 914-988
